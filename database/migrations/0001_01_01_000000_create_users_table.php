@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('degre');
             $table->string('photo');
-            $table->string('npm')->unique();
+            $table->string('npm')->index()->nullable()->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('device_id')->nullable();

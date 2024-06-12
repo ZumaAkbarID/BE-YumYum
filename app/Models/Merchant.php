@@ -2,28 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Overtrue\LaravelFavorite\Traits\Favoriteable;
-use Overtrue\LaravelFavorite\Traits\Favoriter;
 
-class User extends Authenticatable
+class Merchant extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, Favoriter;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    // protected $fillable = [
-    //     'name',
-    //     'email',
-    //     'password',
-    // ];
+    use HasFactory, Favoriteable, HasApiTokens;
 
     protected $guarded = ['id'];
 

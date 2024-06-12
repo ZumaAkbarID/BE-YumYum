@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Merchant;
 use App\Models\User;
 use App\Traits\ResponseJson;
 use Illuminate\Http\JsonResponse;
@@ -31,6 +32,32 @@ class Login extends Controller
                 'user' => $user,
                 'scope' => 'customer',
                 'token' => $user->createToken('authentication')->plainTextToken
+            ]);
+        } else {
+            return $this->response_error('Invalid Credentials', 401, [
+                'error' => 'authorization'
+            ]);
+        }
+    }
+
+    function login_merchant(Request $request): JsonResponse
+    {
+        $request->validate(
+            [
+                'username' => 'required',
+                'password' => 'required'
+            ]
+        );
+
+        if (Auth::guard('merchant')->attempt(['username' => $request->username, 'password' => $request->password], true)) {
+            $merchant = Merchant::find(Auth::guard('merchant')->user()->id);
+
+            $merchant->tokens()->delete();
+
+            return $this->response_success('Success!', 200, [
+                'merchant' => $merchant,
+                'scope' => 'merchant',
+                'token' => $merchant->createToken('authentication')->plainTextToken
             ]);
         } else {
             return $this->response_error('Invalid Credentials', 401, [
