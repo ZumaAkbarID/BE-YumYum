@@ -36,14 +36,15 @@ Route::get('login', function (Request $request) {
         $response = $result->getBody()->getContents();
         $data = json_decode($response);
 
-        User::create([
-            'name' => $data->Nama,
-            'degre' => $data->Prodi,
-            'photo' => $data->Foto,
-            'npm' => $data->Nim,
-            'email' => $data->Email,
-            'password' => Hash::make('passw')
-        ]);
+        if (!User::where('npm', $request->npm)->first())
+            User::create([
+                'name' => $data->Nama,
+                'degre' => $data->Prodi,
+                'photo' => $data->Foto,
+                'npm' => $data->Nim,
+                'email' => $data->Email,
+                'password' => Hash::make('passw')
+            ]);
 
         dd($data);
     } catch (\Exception $e) {
