@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -24,5 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => $ve->getMessage(),
                 'errors' => $ve->errors()
             ], 422);
+        });
+
+        $exceptions->render(function (AuthenticationException $ae): JsonResponse {
+            return response()->json([
+                'status' => false,
+                'message' => $ae->getMessage(),
+                'errors' => 'authorization'
+            ], 401);
         });
     })->create();

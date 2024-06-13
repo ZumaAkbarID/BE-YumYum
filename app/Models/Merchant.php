@@ -36,4 +36,30 @@ class Merchant extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Scope to encode id as base64.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithBase64Id($query)
+    {
+        return $query->selectRaw('*, TO_BASE64(id) as encrypted_id');
+    }
+
+    /**
+     * Accessor for the photo attribute.
+     *
+     * @return string
+     */
+    public function getPhotoAttribute($value)
+    {
+        return config('url.merchant_img') . $value;
+    }
+
+    public function product()
+    {
+        return $this->hasMany(Product::class, 'merchant_id', 'id');
+    }
 }

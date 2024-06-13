@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\Login;
+use App\Http\Controllers\Category;
 use App\Http\Controllers\Merchant;
 use App\Http\Middleware\ValidateSecret;
 use Illuminate\Http\Request;
@@ -21,18 +22,31 @@ Route::group(['middleware' => ValidateSecret::class], function () {
         // Login
         Route::group(['prefix' => 'login'], function () {
             // Mhs
-            Route::post('mhs', [Login::class, 'login_mhs']);
+            Route::post('/', [Login::class, 'login_gate']);
             // Merchant
-            Route::post('merchant', [Login::class, 'login_merchant']);
+            // Route::post('merchant', [Login::class, 'login_merchant']);
         });
     });
 
-    // Merchant
-    Route::group([
-        'prefix' => 'merchant',
-        'middleware' => 'auth:sanctum'
-    ], function () {
-        // Get All
-        Route::post('all', [Merchant::class, 'all']);
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        // Merchant
+        Route::group([
+            'prefix' => 'merchant',
+        ], function () {
+            // Get All
+            Route::post('all', [Merchant::class, 'all']);
+            // Get Detail
+            Route::post('detail', [Merchant::class, 'detail']);
+        });
+
+        // Category
+        Route::group([
+            'prefix' => 'category',
+        ], function () {
+            // Get All
+            Route::post('all', [Category::class, 'all']);
+            // Get Detail
+            Route::post('detail', [Category::class, 'detail']);
+        });
     });
 });

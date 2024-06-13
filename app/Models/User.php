@@ -38,6 +38,17 @@ class User extends Authenticatable
     ];
 
     /**
+     * Scope to encode id as base64.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithBase64Id($query)
+    {
+        return $query->selectRaw('*, TO_BASE64(id) as encrypted_id');
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

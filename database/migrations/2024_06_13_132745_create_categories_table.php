@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('merchants', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->index()->unique();
             $table->string('name');
-            $table->string('photo')->nullable()->default('default-merchant.png');
-            $table->string('password');
-            $table->boolean('is_open')->default(false);
-            $table->string('device_id')->nullable();
-            $table->rememberToken();
+            $table->string('image')->nullable()->default('default-category.png');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('merchants');
+        Schema::dropIfExists('categories');
     }
 };
