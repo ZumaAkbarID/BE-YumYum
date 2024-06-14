@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\Login;
+use App\Http\Controllers\Auth\VerifyToken;
 use App\Http\Controllers\Category;
 use App\Http\Controllers\Merchant;
 use App\Http\Middleware\ValidateSecret;
@@ -29,6 +30,14 @@ Route::group(['middleware' => ValidateSecret::class], function () {
     });
 
     Route::group(['middleware' => 'auth:sanctum'], function () {
+
+        Route::group([
+            'prefix' => 'auth'
+        ], function () {
+            // Verify
+            Route::post('verify-token', [VerifyToken::class, 'verify']);
+        });
+
         // Merchant
         Route::group([
             'prefix' => 'merchant',

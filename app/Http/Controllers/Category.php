@@ -24,10 +24,17 @@ class Category extends Controller
                 $categories = $categories->with('product', function ($q) use ($request) {
                     $q->limit($request->limit_product)
                         ->orderBy('active', 'desc')
+                        ->with('merchant', function ($qc) {
+                            $qc->withBase64Id();
+                        })
                         ->withBase64Id()
                         ->withBase64CategoryId()
                         ->withBase64MerchantId();
                 });
+
+            if ($request->has('search'))
+                $categories = $categories->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('description', 'like', '%' . $request->search . '%');
 
             return $this->response_success('Success!', 200, $categories->get()->makeHidden(['id'])->toArray());
         } catch (\Exception $e) {
@@ -52,6 +59,9 @@ class Category extends Controller
                 $categories = $categories->with('product', function ($q) use ($request) {
                     $q->limit($request->limit_product)
                         ->orderBy('active', 'desc')
+                        ->with('merchant', function ($qc) {
+                            $qc->withBase64Id();
+                        })
                         ->withBase64Id()
                         ->withBase64CategoryId()
                         ->withBase64MerchantId();
