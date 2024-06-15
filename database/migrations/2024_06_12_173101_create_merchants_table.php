@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('photo')->nullable()->default('default-merchant.png');
             $table->string('password');
+            $table->string('description');
             $table->boolean('is_open')->default(false);
             $table->string('device_id')->nullable();
             $table->rememberToken();

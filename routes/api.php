@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Auth\Login;
+use App\Http\Controllers\Auth\Logout;
 use App\Http\Controllers\Auth\VerifyToken;
+use App\Http\Controllers\Cart;
 use App\Http\Controllers\Category;
 use App\Http\Controllers\Merchant;
+use App\Http\Controllers\Product;
 use App\Http\Middleware\ValidateSecret;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +39,8 @@ Route::group(['middleware' => ValidateSecret::class], function () {
         ], function () {
             // Verify
             Route::post('verify-token', [VerifyToken::class, 'verify']);
+            // Logout
+            Route::post('logout', [Logout::class, 'logout']);
         });
 
         // Merchant
@@ -43,7 +48,7 @@ Route::group(['middleware' => ValidateSecret::class], function () {
             'prefix' => 'merchant',
         ], function () {
             // Get All
-            Route::post('all', [Merchant::class, 'all']);
+            Route::post('/', [Merchant::class, 'all']);
             // Get Detail
             Route::post('detail', [Merchant::class, 'detail']);
         });
@@ -53,9 +58,27 @@ Route::group(['middleware' => ValidateSecret::class], function () {
             'prefix' => 'category',
         ], function () {
             // Get All
-            Route::post('all', [Category::class, 'all']);
+            Route::post('/', [Category::class, 'all']);
             // Get Detail
             Route::post('detail', [Category::class, 'detail']);
+        });
+
+        // Product
+        Route::group([
+            'prefix' => 'product',
+        ], function () {
+            // Get All
+            Route::post('/', [Product::class, 'all']);
+            // Get Detail
+            Route::post('detail', [Product::class, 'detail']);
+        });
+
+        // Cart
+        Route::group([
+            'prefix' => 'cart',
+        ], function () {
+            // Get Product with id
+            Route::post('fetch-product', [Cart::class, 'fetch_by_id']);
         });
     });
 });
