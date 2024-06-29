@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('transaction_id');
             $table->unsignedBigInteger('transaction_merchant_id');
-            $table->unsignedBigInteger('product_name');
-            $table->unsignedBigInteger('product_price');
+            $table->string('product_name');
+            $table->string('product_price');
             $table->unsignedInteger('amount')->default(1);
             $table->timestamps();
         });

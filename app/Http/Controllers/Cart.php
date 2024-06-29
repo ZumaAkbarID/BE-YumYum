@@ -3,14 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\TransactionDetails;
+use App\Models\TransactionMerchant;
+use App\Models\User;
+use App\Traits\GeneratesUniqueCode;
 use App\Traits\ResponseJson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Cart extends Controller
 {
-    use ResponseJson;
+    use ResponseJson, GeneratesUniqueCode;
 
     function fetch_by_id(Request $request): JsonResponse
     {
@@ -90,21 +96,24 @@ class Cart extends Controller
             'data.*.product.*.amount' => 'required|numeric',
         ]);
 
-        $isCashless = $request->cashless;
-        $totalMerchant = count($request->data);
+        $isCashless = $request->cashless ?? true;
+
         $isThereProblemProduct = false;
-        $sample = [];
+
+        $totalPriceAll = 0;
+        $transactionMerchantData = [];
+        $transactionDetailData = [];
 
         try {
-            // DB::beginTransaction();
+            DB::beginTransaction();
+            $reff_id = $this->generateUniqueCode();
 
             foreach ($request->data as $item) {
                 if ($isThereProblemProduct)
                     break;
 
+                $totalPriceMerchant = 0;
                 $currentIdMerchant = null;
-                $currentMerchantProductCount = count($item['product']);
-                $i = 1;
 
                 foreach ($item['product'] as $subItem) {
                     $product = Product::where('id', base64_decode($subItem['id_product']))->with('merchant')->first();
@@ -113,31 +122,94 @@ class Cart extends Controller
                         break;
                     }
 
-                    if ($currentIdMerchant !== null)
+                    if ($currentIdMerchant == null)
                         $currentIdMerchant = $product->merchant->id;
 
-                    if ($product->merchant_id !== $product->merchant->id) {
+                    if ($currentIdMerchant !== $product->merchant->id) {
                         $isThereProblemProduct = "invalid_product_group";
                         break;
                     }
+
+                    $totalPriceAll += (int) $product->getRawOriginal('price') * (int) $subItem['amount'];
+                    $totalPriceMerchant += (int) $product->getRawOriginal('price') * (int) $subItem['amount'];
+
+                    $transactionDetailData[] = [
+                        'transaction_id' => ":transaction_id",
+                        'transaction_merchant_id' => ":transaction_merchant_id",
+                        'merchant_id' => $currentIdMerchant,
+                        'product_name' => $product->name,
+                        'product_price' => $product->getRawOriginal('price'),
+                        'amount' => $subItem['amount']
+                    ];
                 }
+
+                $transactionMerchantData[] = [
+                    'transaction_id' => ":transaction_id",
+                    'merchant_id' => $currentIdMerchant,
+                    'total_price' => $totalPriceMerchant
+                ];
             }
 
-            if ($isThereProblemProduct)
+            $createTransaction = Transaction::create([
+                'reff_id' => $reff_id,
+                'user_id' => Auth::user()->id,
+                'cashless' => $isCashless,
+                'total_price' => $totalPriceAll
+            ]);
+
+            $listTransactionMerchantId = [];
+
+            foreach ($transactionMerchantData as &$item) {
+                if ($item['transaction_id'] === ':transaction_id') {
+                    $item['transaction_id'] = $createTransaction->id;
+                }
+
+                $insertTrx = TransactionMerchant::create($item);
+                $listTransactionMerchantId[] = $insertTrx->id;
+            }
+
+            $i = 0;
+            $currentTrxMerchantId = null; // AIV
+            $currentIdMerchant = null; // 123
+            foreach ($transactionDetailData as &$item) {
+                if ($item['transaction_id'] === ':transaction_id') {
+                    $item['transaction_id'] = $createTransaction->id;
+                }
+
+                $currentTrxMerchantId = $listTransactionMerchantId[$i];
+
+                if ($currentIdMerchant == null)
+                    $currentIdMerchant = $item['merchant_id'];
+                elseif ($currentIdMerchant !== $item['merchant_id']) {
+                    $i++;
+
+                    $currentIdMerchant = $item['merchant_id'];
+                }
+
+                if ($item['transaction_merchant_id'] === ':transaction_merchant_id') {
+                    $item['transaction_merchant_id'] = $currentTrxMerchantId;
+                }
+
+                TransactionDetails::create($item);
+            }
+
+            if ($isThereProblemProduct) {
+                DB::rollBack();
                 return $this->response_error('Product isn\'t available to purchase in you\'r cart!', 403, [
                     'error' => $isThereProblemProduct
                 ]);
+            }
 
-            // DB::commit();
+            DB::commit();
             return $this->response_success('Success!', 200, [
                 'status' => 'saved',
-                'data' => $sample,
-                'note_for_fe_dev' => 'saved = data tersimpan, pasti unpaid sih'
+                'midtrans_snap_token' => time(),
+                'note_for_fe_dev' => 'saved = data tersimpan, pasti unpaid sih. mau pake midtrans gak?'
             ]);
         } catch (\Exception $e) {
-            // DB::rollback();
-            return $this->response_error('Failed to get cart!', 503, [
-                'error' => $e->getMessage()
+            DB::rollback();
+            return $this->response_error('Failed to checkout!', 503, [
+                'error' => $e->getMessage(),
             ]);
         }
     }

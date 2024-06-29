@@ -26,7 +26,7 @@ trait GeneratesUniqueCode
      *
      * @return string
      */
-    protected function generateRandomCode()
+    private function generateRandomCode()
     {
         return Str::random(6);
     }
@@ -37,7 +37,7 @@ trait GeneratesUniqueCode
      * @param string $code
      * @return bool
      */
-    protected function codeExists($code)
+    private function codeExists($code)
     {
         return Transaction::where('reff_id', $code)->exists();
     }
