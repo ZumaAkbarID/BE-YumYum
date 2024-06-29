@@ -56,11 +56,11 @@ class ProductSeeder extends Seeder
         ];
 
         $estimasi = [
-            'instant',
-            '5 minutes',
-            '10 minutes',
-            '15 minutes',
-            '20 minutes',
+            '⚡',
+            '5 min',
+            '10 min',
+            '15 min',
+            '20 min',
         ];
 
         // Menampilkan data produk

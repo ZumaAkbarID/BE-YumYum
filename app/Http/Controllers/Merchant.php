@@ -22,6 +22,9 @@ class Merchant extends Controller
 
             if ($request->has('limit_product') && $request->limit_product > 0)
                 $merchants = $merchants->with('product', function ($q) use ($request) {
+                    if ($request->has('hide_inacticve_product') && $request->hide_inacticve_product)
+                        $q = $q->where('active', 1);
+
                     $q = $q->limit($request->limit_product);
 
                     if ($request->has('hide_category') && !$request->hide_category)
@@ -62,17 +65,21 @@ class Merchant extends Controller
         try {
             $merchants = ModelsMerchant::query()
                 ->withBase64Id();
-            if ($request->has('limit_product') && $request->limit_product > 0)
+            if ($request->has('limit_product') && $request->limit_product > 0 || $request->limit_product == -1)
                 $merchants = $merchants->with('product', function ($q) use ($request) {
-                    $q = $q->limit($request->limit_product)
-                        ->orderBy('active', 'desc');
+                    if ($request->has('hide_inacticve_product') && $request->hide_inacticve_product)
+                        $q = $q->where('active', 1);
+
+                    if ($request->limit_product > 0)
+                        $q = $q->limit($request->limit_product);
 
                     if ($request->has('hide_category') && !$request->hide_category)
                         $q = $q->with('category', function ($qc) {
                             $qc->withBase64Id();
                         });
 
-                    $q->withBase64Id()
+                    $q->orderBy('active', 'desc')
+                        ->withBase64Id()
                         ->withBase64CategoryId()
                         ->withBase64MerchantId();
                 });

@@ -22,6 +22,9 @@ class Category extends Controller
 
             if ($request->limit_product > 0)
                 $categories = $categories->with('product', function ($q) use ($request) {
+                    if ($request->has('hide_inacticve_product') && $request->hide_inacticve_product)
+                        $q = $q->where('active', 1);
+
                     $q = $q->limit($request->limit_product)
                         ->orderBy('active', 'desc');
 
@@ -60,6 +63,9 @@ class Category extends Controller
 
             if ($request->limit_product > 0)
                 $categories = $categories->with('product', function ($q) use ($request) {
+                    if ($request->has('hide_inacticve_product') && $request->hide_inacticve_product)
+                        $q = $q->where('active', 1);
+
                     $q = $q->limit($request->limit_product)
                         ->orderBy('active', 'desc');
 

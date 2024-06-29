@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('image')->nullable()->default('default-product.png');
             $table->text('description')->nullable();
             $table->unsignedBigInteger('price')->default(0);
-            $table->string('estimate')->nullable()->default('Instant');
+            $table->string('estimate')->nullable()->default('⚡');
             $table->boolean('active')->default(false);
             $table->timestamps();
         });
