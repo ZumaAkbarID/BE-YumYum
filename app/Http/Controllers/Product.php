@@ -52,6 +52,7 @@ class Product extends Controller
 
             $products = $products->orderBy('merchants.is_open', 'desc')
                 ->orderBy('products.active', 'desc')
+                ->inRandomOrder()
                 ->select('products.*', DB::raw('TO_BASE64(products.id) as encrypted_id'));
 
             return $this->response_success(

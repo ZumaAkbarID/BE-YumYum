@@ -61,13 +61,14 @@ class Category extends Controller
             $categories = ModelsCategory::query()->withBase64Id()
                 ->where('id', base64_decode($request->id));
 
-            if ($request->limit_product > 0)
+            if ($request->limit_product > 0 || $request->limit_product == -1)
                 $categories = $categories->with('product', function ($q) use ($request) {
                     if ($request->has('hide_inacticve_product') && $request->hide_inacticve_product)
                         $q = $q->where('active', 1);
 
-                    $q = $q->limit($request->limit_product)
-                        ->orderBy('active', 'desc');
+                    if ($request->limit_product > 0)
+                        $q = $q->limit($request->limit_product)
+                            ->orderBy('active', 'desc');
 
                     if ($request->has('hide_merchant') && !$request->hide_merchant)
                         $q = $q->with('merchant', function ($qc) {
