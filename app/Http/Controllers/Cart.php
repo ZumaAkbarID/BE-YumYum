@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Merchant;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetails;
@@ -21,8 +22,7 @@ class Cart extends Controller
     function fetch_by_id(Request $request): JsonResponse
     {
         $request->validate([
-            '*.id_product' => 'required|string',
-            '*.amount' => 'required|numeric',
+            '*.id_product' => 'required|string'
         ]);
 
         try {
@@ -33,52 +33,42 @@ class Cart extends Controller
                 return (int) base64_decode($product['id_product']);
             }, $data);
 
-            $productAmount = array_map(function ($product) {
-                return $product['amount'];
-            }, $data);
-
-            $query = Product::whereIn('id', $productIds)->with('merchant', function ($qc) {
-                $qc->withBase64Id();
+            $query = Merchant::whereHas('product', function ($q) use ($productIds) {
+                $q->whereIn('id', $productIds);
             })
-                ->orderBy('active', 'desc')
+                ->with(['product' => function ($q) use ($productIds) {
+                    $q->whereIn('id', $productIds)
+                        ->withBase64Id();
+                }])
+                ->orderBy('is_open', 'desc')
+                ->withBase64Id()
                 ->get();
 
             $result = [];
-            $i = 0;
-            $totalBayar = 0;
-            foreach ($query as $item) {
-                if ($item->merchant->is_open == 0)
-                    $available = 1;
-                else
-                    $available = 0;
 
-                $result[] = [
-                    'product' => [
-                        'id' => base64_encode($item->id),
-                        'image' => $item->image,
-                        'name' => $item->name,
-                        'price' => $item->price,
-                        'amount' => $productAmount[$i],
-                        'total_price' => "Rp " . number_format($item->getRawOriginal('price') * $productAmount[$i], 0, ',', '.'),
-                        'active' => ($available == 0) ? 0 : $item->active
-                    ],
-                    'merchant' => [
-                        'name' => $item->merchant->name,
-                        'photo' => $item->merchant->photo,
-                        'is_open' => $available
-                    ]
+            foreach ($query as $m) {
+                $merchant = [
+                    'encrypted_id_merchant' => $m->encrypted_id,
+                    'name' => $m->name,
+                    'photo' => $m->photo,
+                    'is_open' => $m->is_open,
                 ];
-
-                if ($available == 1 && $item->active == 1)
-                    $totalBayar += $item->getRawOriginal('price') * $productAmount[$i];
-
-                $i++;
+                $prd = [];
+                foreach ($m->product as $p) {
+                    $prd[] = [
+                        'encrypted_id' => $p->encrypted_id,
+                        'name' => $p->name,
+                        'image' => $p->image,
+                        'price' => $p->getRawOriginal('price'),
+                        'estimate' => $p->estimate,
+                        'active' => $p->active,
+                    ];
+                }
+                $merchant['products'] = $prd;
+                $result[] = $merchant;
             }
 
-            return $this->response_success('Success!', 200, [
-                "total" => "Rp " . number_format($totalBayar, 0, ',', '.'),
-                "products" => $result,
-            ]);
+            return $this->response_success('Success!', 200, $result);
         } catch (\Exception $e) {
             return $this->response_error('Failed to get cart!', 503, [
                 'error' => $e->getMessage()
