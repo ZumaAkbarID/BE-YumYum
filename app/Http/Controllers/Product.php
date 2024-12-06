@@ -92,7 +92,13 @@ class Product extends Controller
                 $products = $products->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('description', 'like', '%' . $request->search . '%');
 
-            return $this->response_success('Success!', 200, $products->first()->makeHidden(['id'])->toArray());
+            $products = $products->first();
+            if (!$products)
+                return $this->response_error('Product not found!', 404, [
+                    'error' => 'not_found'
+                ]);
+
+            return $this->response_success('Success!', 200, $products->makeHidden(['id'])->toArray());
         } catch (\Exception $e) {
             return $this->response_error('Failed to get Products!', 503, [
                 'error' => $e->getMessage()
