@@ -15,24 +15,11 @@ class Register extends Controller
 
     private function checkRemoteFile($url): bool
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        // Hanya ambil header
-        curl_setopt($ch, CURLOPT_NOBODY, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        $fp = @fopen($url, "r");
+        if ($fp !== false)
+            fclose($fp);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        curl_close($ch);
-
-        if ($response !== false && $httpCode >= 200 && $httpCode < 300) {
-            // Periksa apakah tipe konten adalah gambar
-            return strpos($contentType, 'image/') === 0;
-        }
-        return false;
+        return ($fp);
     }
 
 
