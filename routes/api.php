@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\Login;
 use App\Http\Controllers\Auth\Logout;
+use App\Http\Controllers\Auth\Register;
 use App\Http\Controllers\Auth\VerifyToken;
 use App\Http\Controllers\Cart;
 use App\Http\Controllers\Category;
@@ -30,6 +31,13 @@ Route::group(['middleware' => ValidateSecret::class], function () {
         Route::group(['prefix' => 'login'], function () {
             // Mhs
             Route::post('/', [Login::class, 'login_gate']);
+            // Merchant
+            // Route::post('merchant', [Login::class, 'login_merchant']);
+        });
+        // Register
+        Route::group(['prefix' => 'register'], function () {
+            // Mhs
+            Route::post('/', [Register::class, 'register_gate']);
             // Merchant
             // Route::post('merchant', [Login::class, 'login_merchant']);
         });

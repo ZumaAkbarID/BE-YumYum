@@ -1,0 +1,31 @@
+name: Deploy to Development Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout kode dari repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Koneksi ke server dan jalankan script deployment
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /var/www/YY
+            git reset --hard              
+            git pull origin main                  
+            composer install
+            systemctl restart nginx
+            php artisan cache:clear
