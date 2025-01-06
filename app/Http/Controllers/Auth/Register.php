@@ -59,23 +59,29 @@ class Register extends Controller
             );
         }
 
+        $patternNim = '/^\d{2}\.\d{2}\.\d{4}$/';
+
         $year = "20" . str_split($request->username, 2)[0];
         $npm = str_replace(".", "_", $request->username);
         $url = "https://fotomhs.amikom.ac.id/$year/$npm.jpg";
 
-        try {
-            if ($isAmikom)
-                $isAmikom = $this->checkRemoteFile($url);
-        } catch (\Exception $e) {
-            return $this->response_error(
-                "Terjadi kesalahan ketika validasi Username",
-                503,
-                [
-                    "status" => "server_amikom",
-                    "message" => $e->getMessage()
-                ]
-            );
-        }
+        if ((int) $year < 1992 && (int) $year > date('Y') || preg_match($patternNim, $request->username) === 1)
+            $isAmikom = false;
+
+        // time out terus
+        // try {
+        //     if ($isAmikom)
+        //         $isAmikom = $this->checkRemoteFile($url);
+        // } catch (\Exception $e) {
+        //     return $this->response_error(
+        //         "Terjadi kesalahan ketika validasi Username",
+        //         503,
+        //         [
+        //             "status" => "server_amikom",
+        //             "message" => $e->getMessage()
+        //         ]
+        //     );
+        // }
 
         if (!$isAmikom) {
             return $this->response_error(
