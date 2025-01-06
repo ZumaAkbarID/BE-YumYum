@@ -61,12 +61,16 @@ class Register extends Controller
 
         $patternNim = '/^\d{2}\.\d{2}\.\d{4}$/';
 
-        $year = "20" . str_split($request->username, 2)[0];
-        $npm = str_replace(".", "_", $request->username);
+        $username = trim($request->username);
+        $year = "20" . str_split($username, 2)[0];
+        $npm = str_replace(".", "_", $username);
         $url = "https://fotomhs.amikom.ac.id/$year/$npm.jpg";
 
-        if ((int) $year < 1992 && (int) $year > date('Y') || preg_match($patternNim, $request->username) === 1)
+        if ((int) $year < 1992 || (int) $year > date('Y') || preg_match($patternNim, $username) !== 1) {
             $isAmikom = false;
+        } else {
+            $isAmikom = true;
+        }
 
         // time out terus
         // try {
